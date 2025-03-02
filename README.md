@@ -84,7 +84,7 @@ Create a configuration file with your TSight [API key](https://tsight.app/settin
 
 The agent looks for configuration in the following locations (in order):
 
-1. **Linux**: `/home/username/.config/tsight_agent/config.yaml`
+1. **Linux**: `~/.config/tsight_agent/config.yaml`
 2. **macOS**: `~/Library/Application Support/tsight_agent/config.yaml`
 3. **Local directory**: `./config.yaml` (fallback for all platforms)
 
