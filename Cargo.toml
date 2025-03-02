@@ -1,0 +1,37 @@
+[package]
+name = "tsight_agent"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.84"
+repository = "https://github.com/antonguzun/tsight-agent"
+description = "system service to provide service tsight.app"
+authors = ["Anton <ayuguzun@gmail.com>", ]
+
+
+[dependencies]
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.139"
+uuid = { version = "1.15.1", features = ["v4", "serde"] }
+config = { version = "0.15.8", features = ["yaml"] }
+reqwest = { version = "0.12.12", features = ["json"] }
+clickhouse = "0.13.1"
+tokio-postgres = "0.7.13"
+mysql = "26.0.0"
+prometheus = "0.13"
+async-trait = "0.1.86"
+thiserror = "2.0"
+anyhow = "1.0.96"
+chrono = { version = "0.4.40", features = ["serde"] }
+backoff = { version = "0.4", features = ["tokio"] }
+log = "0.4.26"
+env_logger = "0.11.6"
+tempfile = "3.17.1"
+regex = "1.11.1"
+mockito = "1.2.0"
+
+
+[profile.release]
+lto = true
+opt-level = 3

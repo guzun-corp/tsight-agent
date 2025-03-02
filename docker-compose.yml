@@ -1,0 +1,16 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports:
+      - "8123:8123"   # HTTP interface
+      - "9000:9000"   # Native interface
+    volumes:
+      - ./tests/init_datasources/clickhouse:/docker-entrypoint-initdb.d
+      - clickhouse-data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_DB=test_db
+      - CLICKHOUSE_USER=test_user
+      - CLICKHOUSE_PASSWORD=test_password
+
+volumes:
+  clickhouse-data:

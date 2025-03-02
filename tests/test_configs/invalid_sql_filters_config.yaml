@@ -1,0 +1,40 @@
+server:
+  api_key: "test-api-key"
+  server_url: "http://localhost:8080"
+
+datasources:
+  - name: "test_clickhouse"
+    source_type: "clickhouse"
+    hosts: 
+      - "http://localhost:8123"
+    username: "test_user"
+    password: "test_password"
+    timeout: 30
+
+
+global_filters:
+
+  ###########################################
+  # SQL ALLOW FILTERS
+  ###########################################
+  sql_filters_allow:
+    - database_regexes:
+        - "^(?!_).*"
+        - "^logs$"
+    - table_regexes:
+        # Allow only table_name contains 'orders': Ex.: 'orders', 'archived_orders'
+        - "orders"
+    - column_name_regexes:
+        - "^status$"
+        - "^country$"
+        - "^currency_isoa2$"
+        - "^platform$"
+    - column_value_regexes:
+        # Allow only values that match ISO A2 country code or ISO currency codes (2 or 3 uppercase symbols)
+        # Ex.: "USD", "EUR", "UK", "US"
+        - "^[A-Z]{2,3}$"
+        # OR value matches with statuses
+        - "^(success|pending|failure)$"
+        # OR value is a number from 0 to 999
+        - "^\\d{1,3}$"
+        - "^(?!secret).*"

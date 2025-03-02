@@ -1,0 +1,42 @@
+server:
+  api_key: "test-api-key"
+  server_url: "http://localhost:8080"
+
+datasources:
+  - name: "test_clickhouse"
+    source_type: "clickhouse"
+    hosts:
+      - "http://localhost:8123"
+    username: "test_user"
+    password: "test_password"
+    timeout: 30
+
+global_filters:
+  ###########################################
+  # SQL ALLOW FILTERS
+  ###########################################
+  sql_filters_allow:
+    - database_regexes:
+        # Allow only databases NOT starting with "_"
+        - "^[a-zA-Z][a-zA-Z0-9_]*$" # Starts with letter, contains alphanumeric and underscore
+        # NB: agent doesn't support lookaround assertions like "^(?!_).*" to match NOT starting with "_"
+        # OR database name = 'logs'
+        - "^logs$"
+    - table_regexes:
+        # Allow only table_name contains 'orders': Ex.: 'orders', 'archived_orders'
+        - "orders"
+        - "^_my_lovely_tmp_table$"
+    - column_name_regexes:
+        - "^status$"
+        - "^order_name$"
+        - "^platform$"
+        - "currency"
+        - "country"
+    - column_value_regexes:
+        # Allow only values that match ISO A2 country code or ISO currency codes (2 or 3 uppercase symbols)
+        # Ex.: "USD", "EUR", "UK", "US"
+        - "^[A-Z]{2,3}$"
+        # OR value matches with statuses
+        - "^(new|processing|completed|cancelled)$"
+        # OR value is a number from 0 to 999
+        - "^\\d{1,3}$"

@@ -1,0 +1,21 @@
+server:
+  api_key: "your-api-key"
+  server_url: "http://localhost:8000"
+
+datasources:
+  - name: "test_clickhouse"
+    source_type: "clickhouse"
+    hosts:
+      - "http://localhost:8123"
+    username: "test_user"
+    password: "test_password"
+    timeout: "10"
+    filters:
+      - "*email*"
+
+  - name: "Clickhouse 2"
+    source_type: "clickhouse"
+    hosts: ["localhost:9000"]
+    username: "default"
+    password: "default"
+    timeout: 10

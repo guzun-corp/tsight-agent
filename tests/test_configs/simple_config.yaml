@@ -1,0 +1,12 @@
+server:
+  api_key: "test-api-key"
+  server_url: "http://localhost:8080"
+
+datasources:
+  - name: "test_clickhouse"
+    source_type: "clickhouse"
+    hosts: 
+      - "http://localhost:8123"
+    username: "test_user"
+    password: "test_password"
+    timeout: 30

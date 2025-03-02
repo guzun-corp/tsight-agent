@@ -1,0 +1,157 @@
+name: CI
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test_dev:
+    name: Test dev build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Start ClickHouse (Docker Compose)
+        run: docker compose up -d
+
+      - name: Wait for ClickHouse
+        run: |
+          for i in {1..10}; do
+            if curl --silent --fail http://localhost:8123; then
+              echo "ClickHouse is up!"
+              break
+            else
+              echo "Waiting for ClickHouse..."
+              sleep 3
+            fi
+          done
+
+      - name: Run dev tests
+        run: cargo test -- --test-threads=1
+
+      - name: Stop ClickHouse
+        if: always()
+        run: docker compose down
+
+  build_linux:
+    name: Build (Linux)
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Add required targets
+        run: rustup target add x86_64-unknown-linux-gnu
+      #   run: |
+      #     rustup target add x86_64-unknown-linux-gnu
+      #     rustup target add aarch64-unknown-linux-gnu
+
+      - name: Build x86_64
+        run: cargo build --release --target x86_64-unknown-linux-gnu
+
+      - name: Rename & upload artifact (x86_64)
+        run: mv target/x86_64-unknown-linux-gnu/release/tsight_agent tsight_agent-linux-x86_64
+      - name: Upload artifact x86_64
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsight_agent-linux-x86_64
+          path: tsight_agent-linux-x86_64
+
+      # - name: Build aarch64
+      #   run: cargo build --release --target aarch64-unknown-linux-gnu
+
+      # - name: Rename & upload artifact (aarch64)
+      #   run: mv target/aarch64-unknown-linux-gnu/release/tsight_agent tsight_agent-linux-arm64
+      # - name: Upload artifact aarch64
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: tsight_agent-linux-arm64
+      #     path: tsight_agent-linux-arm64
+
+  build_macos:
+    name: Build (macOS)
+    runs-on: macos-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Add required targets
+        run: |
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
+
+      - name: Build macOS x86_64
+        run: cargo build --release --target x86_64-apple-darwin
+
+      - name: Rename & upload artifact
+        run: mv target/x86_64-apple-darwin/release/tsight_agent tsight_agent-macos-x86_64
+      - name: Upload artifact macOS
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsight_agent-macos-x86_64
+          path: tsight_agent-macos-x86_64
+
+      - name: Build macOS Apple Silicon
+        run: cargo build --release --target aarch64-apple-darwin
+
+      - name: Rename & upload artifact
+        run: mv target/aarch64-apple-darwin/release/tsight_agent tsight_agent-macos-aarch64
+      - name: Upload artifact macOS
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsight_agent-macos-aarch64
+          path: tsight_agent-macos-aarch64
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build_linux, build_macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+          name: Tsight Agent ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          artifacts: |
+            artifacts/tsight_agent-macos-x86_64/tsight_agent-macos-x86_64
+            artifacts/tsight_agent-macos-aarch64/tsight_agent-macos-aarch64
+            artifacts/tsight_agent-linux-x86_64/tsight_agent-linux-x86_64
