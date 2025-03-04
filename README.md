@@ -52,7 +52,12 @@ The TSight Agent operates with the following components:
 
 ### One-row installation
 
-WIP
+You can use pre-build application
+
+#### linux:
+```sh
+curl -sSL https://install.tsight.app/scripts/linux_installer.sh | bash
+```
 
 ### Install from source code
 
